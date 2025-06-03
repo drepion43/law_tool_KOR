@@ -1,2 +1,4 @@
 langchain-mcp-adapters==0.0.9
 mcp>=1.6.0
+markdownify>=1.1.0
+pdfplumber>=0.11.6

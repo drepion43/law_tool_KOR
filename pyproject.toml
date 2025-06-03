@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "langchain-community>=0.3.20",
     "langchain-mcp-adapters==0.0.9",
     "markdownify>=1.1.0",
     "mcp>=1.6.0",

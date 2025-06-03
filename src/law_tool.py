@@ -5,6 +5,7 @@ import urllib.parse
 from typing import Dict, Optional, List, Tuple
 from law_search import lawSearch
 
+from pathlib import Path
 import pdfplumber
 from io import BytesIO
 import logging
@@ -38,7 +39,7 @@ class lawPDF:
                        file_name: str):
         response = requests.post(url, data=form_data)
         response.raise_for_status()
-        file_name = file_path + file_name
+        file_name = Path(file_path) / file_name
         with open(file_name, 'wb') as file:
             file.write(response.content)
 
@@ -118,6 +119,10 @@ class lawPDF:
 
         laws = await self.lawSerach.search(query=query)
         for title, values in laws.items():
+            # 파일 디렉 생성
+            Path(output_path).mkdir(parents=True, exist_ok=True)
+            
+            
             yyyymmdd = values['시행일자']
             code = values['code']
             title = title

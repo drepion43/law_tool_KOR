@@ -7,6 +7,7 @@ from law_search import lawSearch
 
 from pathlib import Path
 import pdfplumber
+from langchain_community.document_loaders import PDFPlumberLoader, PyPDFLoader
 from io import BytesIO
 import logging
 logging.getLogger('').setLevel(logging.CRITICAL)
@@ -39,9 +40,14 @@ class lawPDF:
                        file_name: str):
         response = requests.post(url, data=form_data)
         response.raise_for_status()
-        file_name = Path(file_path) / file_name
+        file_name = file_path / file_name
         with open(file_name, 'wb') as file:
             file.write(response.content)
+        
+        loader = PyPDFLoader(file_name)
+        docs = loader.load()
+        return docs
+        
 
     def _get_download_parameter(self,
                                 response: requests.models.Response) -> Tuple[List, List]:
@@ -112,22 +118,22 @@ class lawPDF:
         return root_url
     
     async def download_pdf(self,
-                           query: str,
-                           output_path: str):
+                           query: str):
         
         base_pdf_url = "https://www.law.go.kr/LSW/lsPdfPrint.do"
 
         laws = await self.lawSerach.search(query=query)
         for title, values in laws.items():
-            # 파일 디렉 생성
-            Path(output_path).mkdir(parents=True, exist_ok=True)
-            
-            
             yyyymmdd = values['시행일자']
             code = values['code']
             title = title
             chrClsCd = "010202"
             now = int(datetime.datetime.now().timestamp())
+            today_yyyymmdd = datetime.datetime.now().strftime("%Y%m%d")
+            output_path = f"/data/pdf/{today_yyyymmdd}"
+
+            # 파일 디렉 생성
+            Path(output_path).mkdir(parents=True, exist_ok=True)
             
             url = self._setting_paramter(yyyymmdd=yyyymmdd,
                                                code=code,
@@ -135,10 +141,11 @@ class lawPDF:
                                                now=now)
             parsed_url = urllib.parse.urlparse(url)
             form_data = urllib.parse.parse_qs(parsed_url.query)
-            self._download_file(url=base_pdf_url,
-                                form_data=form_data,
-                                file_path=output_path,
-                                file_name=f"{title}.pdf")
+            pdf_content = self._download_file(url=base_pdf_url,
+                                              form_data=form_data,
+                                              file_path=output_path,
+                                              file_name=f"{title}.pdf")
+            return pdf_content
             
     async def read_content(self,
                            query: str):

@@ -11,6 +11,7 @@ law_pdf = lawPDF()
 async def pdf_download(query: str, output_path: str):
     try:
         results = await law_pdf.download_pdf(query=query, output_path=output_path)
+        return results
     except Exception as e:
         traceback.print_exc(file=sys.stderr)
         return f"An error occurred while searching: {str(e)}"

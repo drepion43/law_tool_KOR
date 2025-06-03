@@ -5,21 +5,37 @@ import urllib.parse
 from typing import Dict, Optional, List, Tuple
 from law_search import lawSearch
 
+import pdfplumber
+from io import BytesIO
+import logging
+logging.getLogger('').setLevel(logging.CRITICAL)
+
 class lawPDF:
     def __init__(self):
         self.lawSerach = lawSearch()
     
     def _transform_string(self,
-                                input_string: str) -> str:
+                          input_string: str) -> str:
         first_part = input_string[:8]
         transform_part = first_part[:-2] + first_part[-2:]
         return transform_part
+    
+    def _load_content(self,
+                      url: str,
+                      form_data: Dict):
+        response = requests.post(url, data=form_data)
+        response.raise_for_status()
+        with pdfplumber.open(BytesIO(response.content)) as pdf:
+            text = ""
+            for page in pdf.pages:
+                text += page.extract_text() or ""
+        return text
 
     def _download_file(self,
-                             url: str,
-                             form_data: Dict,
-                             file_path: str,
-                             file_name: str):
+                       url: str,
+                       form_data: Dict,
+                       file_path: str,
+                       file_name: str):
         response = requests.post(url, data=form_data)
         response.raise_for_status()
         file_name = file_path + file_name
@@ -27,7 +43,7 @@ class lawPDF:
             file.write(response.content)
 
     def _get_download_parameter(self,
-                                      response: requests.models.Response) -> Tuple[List, List]:
+                                response: requests.models.Response) -> Tuple[List, List]:
         jonum_list = []
         output_list = []
         text = response.text
@@ -55,10 +71,10 @@ class lawPDF:
         return jonum_list, output_list
     
     def _setting_paramter(self,
-                                yyyymmdd: int,
-                                code: int,
-                                chrClsCd: str,
-                                now: datetime.datetime.timestamp):
+                          yyyymmdd: int,
+                          code: int,
+                          chrClsCd: str,
+                          now: datetime.datetime.timestamp):
         base_api_url = f"https://www.law.go.kr/LSW/joListRInc.do"
 
         param1 = {
@@ -94,9 +110,9 @@ class lawPDF:
         
         return root_url
     
-    async def serach(self,
-                     query: str,
-                     output_path: str):
+    async def download_pdf(self,
+                           query: str,
+                           output_path: str):
         
         base_pdf_url = "https://www.law.go.kr/LSW/lsPdfPrint.do"
 
@@ -118,3 +134,28 @@ class lawPDF:
                                 form_data=form_data,
                                 file_path=output_path,
                                 file_name=f"{title}.pdf")
+            
+    async def read_content(self,
+                           query: str):
+        
+        base_pdf_url = "https://www.law.go.kr/LSW/lsPdfPrint.do"
+
+        laws = await self.lawSerach.search(query=query)
+        for title, values in laws.items():
+            yyyymmdd = values['시행일자']
+            code = values['code']
+            title = title
+            chrClsCd = "010202"
+            now = int(datetime.datetime.now().timestamp())
+            
+            url = self._setting_paramter(yyyymmdd=yyyymmdd,
+                                               code=code,
+                                               chrClsCd=chrClsCd,
+                                               now=now)
+            parsed_url = urllib.parse.urlparse(url)
+            form_data = urllib.parse.parse_qs(parsed_url.query)
+            text = self._load_content(url=base_pdf_url,
+                                      form_data=form_data)
+            return text
+            
+    

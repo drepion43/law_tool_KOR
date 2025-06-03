@@ -10,7 +10,16 @@ law_pdf = lawPDF()
 @mcp.tool()
 async def pdf_download(query: str, output_path: str):
     try:
-        results = await law_pdf.serach(query=query, output_path=output_path)
+        results = await law_pdf.download_pdf(query=query, output_path=output_path)
+    except Exception as e:
+        traceback.print_exc(file=sys.stderr)
+        return f"An error occurred while searching: {str(e)}"
+
+@mcp.tool()
+async def load_pdf(query: str):
+    try:
+        results = await law_pdf.read_content(query=query)
+        return results
     except Exception as e:
         traceback.print_exc(file=sys.stderr)
         return f"An error occurred while searching: {str(e)}"

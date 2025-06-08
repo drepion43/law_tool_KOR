@@ -117,7 +117,7 @@ class lawPDF:
     async def download_pdf(self,
                            query: str):
         
-        download_urls = []
+        download_urls = ""
 
         laws = await self.lawSerach.search(query=query)
         for title, values in laws.items():
@@ -135,17 +135,17 @@ class lawPDF:
                                          code=code,
                                          chrClsCd=chrClsCd,
                                          now=now)
-            download_urls.append((title, url))
-            
+            download_urls += f"{title}: {url} \n"
+        
         return download_urls
             
     async def read_content(self,
                            query: str):
         
         base_pdf_url = "https://www.law.go.kr/LSW/lsPdfPrint.do"
+        contents_list = ""
 
         laws = await self.lawSerach.search(query=query)
-        contents_list = []
         for title, values in laws.items():
             yyyymmdd = values['시행일자']
             code = values['code']
@@ -168,7 +168,9 @@ class lawPDF:
                                       form_data=form_data,
                                       file_path=output_path,
                                       file_name=f"{title}.pdf")
-            contents_list.append((title, text))
+            contents_list += f"{title} \n text"
+            contents_list += "\n\n"
+            
         return contents_list
             
     

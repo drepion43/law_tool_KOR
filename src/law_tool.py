@@ -27,7 +27,6 @@ class lawPDF:
                      docs: List[Document]) -> str:
         """검색된 문서 리스트를 하나의 문자열로 병합"""
         return "\n".join([doc.page_content for doc in docs])
-    
 
     def _load_content(self,
                        url: str,
@@ -159,9 +158,9 @@ class lawPDF:
             Path(output_path).mkdir(parents=True, exist_ok=True)
 
             url = self._setting_paramter(yyyymmdd=yyyymmdd,
-                                               code=code,
-                                               chrClsCd=chrClsCd,
-                                               now=now)
+                                         code=code,
+                                         chrClsCd=chrClsCd,
+                                         now=now)
             parsed_url = urllib.parse.urlparse(url)
             form_data = urllib.parse.parse_qs(parsed_url.query)
             text = self._load_content(url=base_pdf_url,

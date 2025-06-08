@@ -41,14 +41,14 @@ class lawPDF:
         with open(file_paths, 'wb') as file:
             file.write(response.content)
             
-        save_url = 'https://file-upload-url.onrender.com/upload/pdf/law'  # 예: uploads/pdf/law/a.pdf로 저장됨
+        upload_url = 'https://file-upload-url.onrender.com/upload/pdf/law'  # 예: uploads/pdf/law/a.pdf로 저장됨
         
         # 파일 업로드
         with open(file_paths, 'rb') as f:
             files = {'file': f}
-            response = requests.post(save_url, files=files)
+            response = requests.post(upload_url, files=files)
             
-        
+        save_url = 'https://file-upload-url.onrender.com/download/pdf/law'
         return f"{save_url}/{file_name}"
 
     def _load_content(self,

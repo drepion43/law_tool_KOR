@@ -30,21 +30,11 @@ class lawPDF:
     
 
     def _load_content(self,
-                      url: str,
-                      form_data: Dict):
-        response = requests.post(url, data=form_data)
-        response.raise_for_status()
-        with pdfplumber.open(BytesIO(response.content)) as pdf:
-            text = ""
-            for page in pdf.pages:
-                text += page.extract_text() or ""
-        return text
-
-    def _download_file(self,
                        url: str,
                        form_data: Dict,
                        file_path: str,
                        file_name: str):
+        
         response = requests.post(url, data=form_data)
         response.raise_for_status()
         file_name = file_path / file_name
@@ -54,7 +44,6 @@ class lawPDF:
         loader = PyPDFLoader(file_name)
         docs = loader.load()
         docs_content = self._format_docs(docs)
-
         return docs_content
 
     def _get_download_parameter(self,
@@ -128,7 +117,7 @@ class lawPDF:
     async def download_pdf(self,
                            query: str):
         
-        base_pdf_url = "https://www.law.go.kr/LSW/lsPdfPrint.do"
+        download_urls = []
 
         laws = await self.lawSerach.search(query=query)
         for title, values in laws.items():
@@ -140,20 +129,15 @@ class lawPDF:
             today_yyyymmdd = datetime.datetime.now().strftime("%Y%m%d")
             output_path = f"/data/pdf/{today_yyyymmdd}"
 
-            # 파일 디렉 생성
             Path(output_path).mkdir(parents=True, exist_ok=True)
             
             url = self._setting_paramter(yyyymmdd=yyyymmdd,
-                                               code=code,
-                                               chrClsCd=chrClsCd,
-                                               now=now)
-            parsed_url = urllib.parse.urlparse(url)
-            form_data = urllib.parse.parse_qs(parsed_url.query)
-            pdf_content = self._download_file(url=base_pdf_url,
-                                              form_data=form_data,
-                                              file_path=output_path,
-                                              file_name=f"{title}.pdf")
-            return pdf_content
+                                         code=code,
+                                         chrClsCd=chrClsCd,
+                                         now=now)
+            download_urls.append((title, url))
+            
+        return download_urls
             
     async def read_content(self,
                            query: str):
@@ -161,13 +145,19 @@ class lawPDF:
         base_pdf_url = "https://www.law.go.kr/LSW/lsPdfPrint.do"
 
         laws = await self.lawSerach.search(query=query)
+        contents_list = []
         for title, values in laws.items():
             yyyymmdd = values['시행일자']
             code = values['code']
             title = title
             chrClsCd = "010202"
             now = int(datetime.datetime.now().timestamp())
+            today_yyyymmdd = datetime.datetime.now().strftime("%Y%m%d")
+            output_path = f"/data/pdf/{today_yyyymmdd}"
             
+            # 파일 디렉 생성
+            Path(output_path).mkdir(parents=True, exist_ok=True)
+
             url = self._setting_paramter(yyyymmdd=yyyymmdd,
                                                code=code,
                                                chrClsCd=chrClsCd,
@@ -175,7 +165,10 @@ class lawPDF:
             parsed_url = urllib.parse.urlparse(url)
             form_data = urllib.parse.parse_qs(parsed_url.query)
             text = self._load_content(url=base_pdf_url,
-                                      form_data=form_data)
-            return text
+                                      form_data=form_data,
+                                      file_path=output_path,
+                                      file_name=f"{title}.pdf")
+            contents_list.append((title, text))
+        return contents_list
             
     

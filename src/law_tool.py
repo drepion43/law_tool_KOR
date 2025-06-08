@@ -27,6 +27,29 @@ class lawPDF:
                      docs: List[Document]) -> str:
         """검색된 문서 리스트를 하나의 문자열로 병합"""
         return "\n".join([doc.page_content for doc in docs])
+    
+    def _download_url(self,
+                      url: str,
+                      form_data: Dict,
+                      file_path: str,
+                      file_name: str):
+        response = requests.post(url, data=form_data)
+        response.raise_for_status()
+        file_path = Path(file_path)  # 문자열을 Path 객체로 변환
+        
+        file_paths = file_path / file_name
+        with open(file_paths, 'wb') as file:
+            file.write(response.content)
+            
+        save_url = 'https://file-upload-url.onrender.com/upload/pdf/law'  # 예: uploads/pdf/law/a.pdf로 저장됨
+        
+        # 파일 업로드
+        with open(file_paths, 'rb') as f:
+            files = {'file': f}
+            response = requests.post(save_url, files=files)
+            
+        
+        return f"{save_url}/{file_name}"
 
     def _load_content(self,
                        url: str,
@@ -36,6 +59,8 @@ class lawPDF:
         
         response = requests.post(url, data=form_data)
         response.raise_for_status()
+        file_path = Path(file_path)  # 문자열을 Path 객체로 변환
+
         file_name = file_path / file_name
         with open(file_name, 'wb') as file:
             file.write(response.content)
@@ -117,6 +142,7 @@ class lawPDF:
                            query: str):
         
         download_urls = ""
+        base_pdf_url = "https://www.law.go.kr/LSW/lsPdfPrint.do"
 
         laws = await self.lawSerach.search(query=query)
         for title, values in laws.items():
@@ -125,14 +151,24 @@ class lawPDF:
             title = title
             chrClsCd = "010202"
             now = int(datetime.datetime.now().timestamp())
+            today_yyyymmdd = datetime.datetime.now().strftime("%Y%m%d")
+            output_path = f"/data/pdf/{today_yyyymmdd}"
             
+            Path(output_path).mkdir(parents=True, exist_ok=True)
+                        
             url = self._setting_paramter(yyyymmdd=yyyymmdd,
                                          code=code,
                                          chrClsCd=chrClsCd,
                                          now=now)
-            download_urls += f"{title}: {url} \n"
-        
-            return download_urls
+            parsed_url = urllib.parse.urlparse(url)
+            form_data = urllib.parse.parse_qs(parsed_url.query)
+            
+            save_url = self._download_url(url=base_pdf_url,
+                                          form_data=form_data,
+                                          file_path=output_path,
+                                          file_name=f"{title}.pdf")
+            download_urls += f"{title}: {save_url} \n"
+        return download_urls
             
     async def read_content(self,
                            query: str):
@@ -163,9 +199,9 @@ class lawPDF:
                                       form_data=form_data,
                                       file_path=output_path,
                                       file_name=f"{title}.pdf")
-            contents_list += f"{title} \n text"
+            contents_list += f"{title} \n {text}"
             contents_list += "\n\n"
             
-            return contents_list
+        return contents_list
             
     

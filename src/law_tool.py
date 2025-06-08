@@ -153,9 +153,9 @@ class lawPDF:
             now = int(datetime.datetime.now().timestamp())
             today_yyyymmdd = datetime.datetime.now().strftime("%Y%m%d")
             output_path = f"/data/pdf/{today_yyyymmdd}"
-            
+
             Path(output_path).mkdir(parents=True, exist_ok=True)
-                        
+
             url = self._setting_paramter(yyyymmdd=yyyymmdd,
                                          code=code,
                                          chrClsCd=chrClsCd,

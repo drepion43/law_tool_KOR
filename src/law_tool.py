@@ -8,6 +8,7 @@ from law_search import lawSearch
 from pathlib import Path
 import pdfplumber
 from langchain_community.document_loaders import PDFPlumberLoader, PyPDFLoader
+from langchain.schema import Document
 from io import BytesIO
 import logging
 logging.getLogger('').setLevel(logging.CRITICAL)
@@ -22,6 +23,12 @@ class lawPDF:
         transform_part = first_part[:-2] + first_part[-2:]
         return transform_part
     
+    def _format_docs(self,
+                     docs: List[Document]) -> str:
+        """검색된 문서 리스트를 하나의 문자열로 병합"""
+        return "\n".join([doc.page_content for doc in docs])
+    
+
     def _load_content(self,
                       url: str,
                       form_data: Dict):
@@ -46,8 +53,9 @@ class lawPDF:
         
         loader = PyPDFLoader(file_name)
         docs = loader.load()
-        return docs
-        
+        docs_content = self._format_docs(docs)
+
+        return docs_content
 
     def _get_download_parameter(self,
                                 response: requests.models.Response) -> Tuple[List, List]:

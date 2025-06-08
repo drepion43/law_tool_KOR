@@ -138,8 +138,8 @@ class lawPDF:
         
         return root_url
     
-    async def download_pdf(self,
-                           query: str):
+    async def download_pdf_url(self,
+                               query: str):
         
         download_urls = ""
         base_pdf_url = "https://www.law.go.kr/LSW/lsPdfPrint.do"

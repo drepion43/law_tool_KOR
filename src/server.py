@@ -8,9 +8,9 @@ mcp = FastMCP("law_tool_KOR")
 law_pdf = lawPDF()
 
 @mcp.tool()
-async def pdf_download(query: str):
+async def pdf_url(query: str):
     try:
-        results = await law_pdf.download_pdf(query=query)
+        results = await law_pdf.download_pdf_url(query=query)
         return results
     except Exception as e:
         traceback.print_exc(file=sys.stderr)

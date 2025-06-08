@@ -42,7 +42,7 @@ class lawPDF:
         
         loader = PyPDFLoader(file_name)
         docs = loader.load()
-        docs_content = self._format_docs(docs)
+        docs_content = self._format_docs(docs=docs)
         return docs_content
 
     def _get_download_parameter(self,
@@ -125,10 +125,6 @@ class lawPDF:
             title = title
             chrClsCd = "010202"
             now = int(datetime.datetime.now().timestamp())
-            today_yyyymmdd = datetime.datetime.now().strftime("%Y%m%d")
-            output_path = f"/data/pdf/{today_yyyymmdd}"
-
-            Path(output_path).mkdir(parents=True, exist_ok=True)
             
             url = self._setting_paramter(yyyymmdd=yyyymmdd,
                                          code=code,

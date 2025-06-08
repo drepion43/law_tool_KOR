@@ -132,7 +132,7 @@ class lawPDF:
                                          now=now)
             download_urls += f"{title}: {url} \n"
         
-        return download_urls
+            return download_urls
             
     async def read_content(self,
                            query: str):
@@ -166,6 +166,6 @@ class lawPDF:
             contents_list += f"{title} \n text"
             contents_list += "\n\n"
             
-        return contents_list
+            return contents_list
             
     
